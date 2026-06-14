@@ -8,112 +8,112 @@ interface Props {
 
 export default function OtpSection({ onVerified }: Props) {
 
-  const [phone,setPhone] = useState('')
-  const [otpSent,setOtpSent] = useState(false)
-  const [otp,setOtp] = useState(['','','',''])
-  const [realOtp,setRealOtp] = useState('')
-  const [verified,setVerified] = useState(false)
-  const [error,setError] = useState('')
-  const [timer,setTimer] = useState(0)
-  const [demoOtp,setDemoOtp] = useState('')
+  const [phone, setPhone] = useState('')
+  const [otpSent, setOtpSent] = useState(false)
+  const [otp, setOtp] = useState(['', '', '', ''])
+  const [realOtp, setRealOtp] = useState('')
+  const [verified, setVerified] = useState(false)
+  const [error, setError] = useState('')
+  const [timer, setTimer] = useState(0)
+  const [demoOtp, setDemoOtp] = useState('')
 
-  const inputRefs = useRef<(HTMLInputElement|null)[]>([])
-  const timerRef = useRef<NodeJS.Timeout|null>(null)
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([])
+  const timerRef = useRef<NodeJS.Timeout | null>(null)
 
 
-  const startTimer = useCallback((sec:number)=>{
+  const startTimer = useCallback((sec: number) => {
 
     setTimer(sec)
 
-    if(timerRef.current)
+    if (timerRef.current)
       clearInterval(timerRef.current)
 
-    timerRef.current=setInterval(()=>{
+    timerRef.current = setInterval(() => {
 
-      setTimer(prev=>{
+      setTimer(prev => {
 
-        if(prev<=1){
+        if (prev <= 1) {
           clearInterval(timerRef.current!)
           return 0
         }
 
-        return prev-1
+        return prev - 1
 
       })
 
-    },1000)
+    }, 1000)
 
-  },[])
+  }, [])
 
 
 
-  useEffect(()=>{
+  useEffect(() => {
 
-    return ()=>{
+    return () => {
 
-      if(timerRef.current)
+      if (timerRef.current)
         clearInterval(timerRef.current)
 
     }
 
-  },[])
+  }, [])
 
 
 
-  function sendOtp(){
+  function sendOtp() {
 
-    const code=String(
-      Math.floor(1000+Math.random()*9000)
+    const code = String(
+      Math.floor(1000 + Math.random() * 9000)
     )
 
     setRealOtp(code)
     setDemoOtp(code)
     setOtpSent(true)
-    setOtp(['','','',''])
+    setOtp(['', '', '', ''])
     setError('')
     setVerified(false)
     startTimer(60)
 
-    setTimeout(()=>{
+    setTimeout(() => {
       inputRefs.current[0]?.focus()
-    },100)
+    }, 100)
 
   }
 
 
 
-  function handleOtpChange(index:number,value:string){
+  function handleOtpChange(index: number, value: string) {
 
-    if(!/^\d?$/.test(value))
+    if (!/^\d?$/.test(value))
       return
 
-    const next=[...otp]
-    next[index]=value
+    const next = [...otp]
+    next[index] = value
 
     setOtp(next)
     setError('')
 
 
-    if(value && index<3)
-      inputRefs.current[index+1]?.focus()
+    if (value && index < 3)
+      inputRefs.current[index + 1]?.focus()
 
 
-    if(index===3 && value)
+    if (index === 3 && value)
       autoVerify(next.join(''))
 
   }
 
 
 
-  function handleKeyDown(index:number,e:React.KeyboardEvent){
+  function handleKeyDown(index: number, e: React.KeyboardEvent) {
 
-    if(
-      e.key==='Backspace' &&
+    if (
+      e.key === 'Backspace' &&
       !otp[index] &&
-      index>0
-    ){
+      index > 0
+    ) {
 
-      inputRefs.current[index-1]?.focus()
+      inputRefs.current[index - 1]?.focus()
 
     }
 
@@ -121,31 +121,31 @@ export default function OtpSection({ onVerified }: Props) {
 
 
 
-  function autoVerify(code:string){
+  function autoVerify(code: string) {
 
-    if(code===realOtp){
+    if (code === realOtp) {
 
       setVerified(true)
       setError('')
       onVerified()
 
-    }else{
+    } else {
 
       setError('Incorrect OTP. Try again.')
 
     }
 
   }
-  function verifyManual(){
+  function verifyManual() {
 
-  autoVerify(otp.join(''))
+    autoVerify(otp.join(''))
 
-}
+  }
 
 
 
   const canSend =
-    phone.replace(/\D/g,'').length>=10
+    phone.replace(/\D/g, '').length >= 10
 
 
 
@@ -154,8 +154,8 @@ export default function OtpSection({ onVerified }: Props) {
     <div
       className="rounded-xl p-3"
       style={{
-        background:'#0d1b2a',
-        border:'0.5px solid #1e3a5f'
+        background: '#0d1b2a',
+        border: '0.5px solid #1e3a5f'
       }}
     >
 
@@ -190,7 +190,7 @@ export default function OtpSection({ onVerified }: Props) {
           type="tel"
           placeholder="+91 9876543210"
           value={phone}
-          onChange={e=>setPhone(e.target.value)}
+          onChange={e => setPhone(e.target.value)}
           maxLength={13}
         />
 
@@ -200,7 +200,7 @@ export default function OtpSection({ onVerified }: Props) {
           disabled={!canSend}
           className="px-3 py-2 rounded-lg text-xs font-bold"
           style={{
-            background:canSend?'#4ECDC4':'#1e3a5f'
+            background: canSend ? '#4ECDC4' : '#1e3a5f'
           }}
         >
           📱 OTP
@@ -219,8 +219,8 @@ export default function OtpSection({ onVerified }: Props) {
           <div
             className="text-xs px-2 py-1 rounded mb-1"
             style={{
-              background:'#082020',
-              color:'#34d399'
+              background: '#082020',
+              color: '#34d399'
             }}
           >
             OTP:
@@ -231,23 +231,20 @@ export default function OtpSection({ onVerified }: Props) {
           <div className="flex gap-2 items-center">
 
 
-            {otp.map((digit,i)=>(
+            {otp.map((digit, i) => (
 
               <input
                 key={i}
-                ref={el=>inputRefs.current[i]=el}
+                ref={(el) => {
+                  inputRefs.current[i] = el
+                }}
                 className="w-8 h-8 text-center rounded border"
                 maxLength={1}
                 value={digit}
-                onChange={
-                  e=>handleOtpChange(i,e.target.value)
-                }
-                onKeyDown={
-                  e=>handleKeyDown(i,e)
-                }
+                onChange={e => handleOtpChange(i, e.target.value)}
+                onKeyDown={e => handleKeyDown(i, e)}
                 disabled={verified}
               />
-
             ))}
 
 
@@ -261,7 +258,7 @@ export default function OtpSection({ onVerified }: Props) {
                 Verify
               </button>
 
-            ):(
+            ) : (
 
               <span className="text-xs text-green-400">
                 ✓ Verified
@@ -286,9 +283,9 @@ export default function OtpSection({ onVerified }: Props) {
 
           <div className="mt-1 text-xs text-orange-400">
 
-            {timer>0
+            {timer > 0
               ? `Resend in ${timer}s`
-              : 
+              :
               <button className="text-[#4ECDC4]">
                 Resend OTP
               </button>

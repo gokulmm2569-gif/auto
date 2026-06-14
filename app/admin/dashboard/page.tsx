@@ -81,6 +81,7 @@ export default function AdminDashboard() {
     if (!user) return
 
     async function loadBookings() {
+      if (!user) return
       try {
         const res = await fetch(`/api/bookings?email=${user.email}`)
         const data = await res.json()
