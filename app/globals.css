@@ -1,0 +1,92 @@
+@import "tailwindcss";
+
+:root {
+  --background: #050816;
+  --card: #111827;
+  --primary: #D4AF37;
+  --secondary: #00C9A7;
+  --text: #F8FAFC;
+  --muted-text: #94A3B8;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--text);
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background:
+    radial-gradient(circle at top, rgba(212, 175, 55, 0.18), transparent 34%),
+    radial-gradient(circle at bottom right, rgba(0, 201, 167, 0.08), transparent 28%),
+    linear-gradient(180deg, #050816 0%, #111827 100%);
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background: transparent;
+  color: var(--text);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+::selection {
+  background: rgba(212, 175, 55, 0.35);
+  color: var(--background);
+}
+
+@keyframes pickup-drive {
+  0% {
+    left: 1rem;
+    transform: translateY(0) scale(0.98);
+  }
+  16% {
+    left: 1rem;
+    transform: translateY(0) scale(1);
+  }
+  28% {
+    left: 1rem;
+    transform: translateY(0) scale(1);
+  }
+  62% {
+    left: calc(50% - 7.5rem);
+    transform: translateY(-2px) scale(1);
+  }
+  100% {
+    left: calc(100% - 16rem);
+    transform: translateY(0) scale(0.98);
+  }
+}
+
+@keyframes pickup-beacon {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  18%,
+  24% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+}
+
+.pickup-drive {
+  animation: pickup-drive 7s ease-in-out infinite;
+}
+
+.pickup-beacon {
+  animation: pickup-beacon 7s ease-in-out infinite;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
