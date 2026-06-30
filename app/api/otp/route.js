@@ -104,6 +104,7 @@ export async function POST(request) {
     message: "OTP sent successfully.",
   })
 }
+
     if (action === 'verify') {
       const code = String(payload?.code ?? '').trim()
 
