@@ -7,12 +7,12 @@ import { LocationResult } from '@/hooks/useLocationSearch'
 import { useRouter } from "next/navigation"
 
 const RIDE_TYPES = [
-  { name: 'Mini', rate: 12, icon: '🚗', color: '#facc15', desc: 'Economy' },
-  { name: 'Sedan', rate: 16, icon: '🚙', color: '#38bdf8', desc: 'Comfort' },
-  { name: 'SUV', rate: 22, icon: '🚐', color: '#a78bfa', desc: 'Spacious' },
-  { name: 'Prime', rate: 18, icon: '⭐', color: '#f472b6', desc: 'Premium' },
-  { name: 'Luxury', rate: 25, icon: '💎', color: '#34d399', desc: 'Elite' },
-  { name: 'Airport', rate: 28, icon: '✈️', color: '#fb923c', desc: 'Transfer' },
+  { name: 'Mini', rate: 12, icon: '🚗', color: '250, 204, 21', desc: 'Economy' },
+  { name: 'Sedan', rate: 16, icon: '🚙', color: '56, 189, 248', desc: 'Comfort' },
+  { name: 'SUV', rate: 22, icon: '🚐', color: '167, 139, 250', desc: 'Spacious' },
+  { name: 'Prime', rate: 18, icon: '⭐', color: '244, 114, 182', desc: 'Premium' },
+  { name: 'Luxury', rate: 25, icon: '💎', color: '52, 211, 153', desc: 'Elite' },
+  { name: 'Airport', rate: 28, icon: '✈️', color: '251, 146, 60', desc: 'Transfer' },
 ]
 
 interface RouteResult {
@@ -23,6 +23,7 @@ interface RouteResult {
 export default function BookingPage() {
   const router = useRouter()
   const [otpVerified, setOtpVerified] = useState(false)
+  const [mobileNumber, setMobileNumber] = useState('') // OTP வெரிஃபிகேஷனில் இருந்து மொபைல் எண்ணைச் சேமிக்க ஸ்டேட்
   const [pickupText, setPickupText] = useState('')
   const [dropoffText, setDropoffText] = useState('')
   const [pickupCoords, setPickupCoords] = useState<{ lat: number; lon: number } | null>(null)
@@ -31,6 +32,9 @@ export default function BookingPage() {
   const [routeResult, setRouteResult] = useState<RouteResult | null>(null)
   const [calcLoading, setCalcLoading] = useState(false)
   const [statusMsg, setStatusMsg] = useState<{ text: string; type: 'ok' | 'err' } | null>(null)
+
+  // தேர்ந்தெடுக்கப்பட்ட வண்டியின் விவரங்கள் (ஸ்கோப் எரர் வராமல் இருக்க மேலே மாற்றப்பட்டுள்ளது)
+  const ride = RIDE_TYPES[selectedRide]
 
   function showMsg(text: string, type: 'ok' | 'err') {
     setStatusMsg({ text, type })
@@ -89,11 +93,13 @@ export default function BookingPage() {
     if (!otpVerified) { showMsg('Please verify customer OTP first', 'err'); return }
     if (!pickupText || !dropoffText) { showMsg('Enter pickup and drop-off locations', 'err'); return }
     if (!routeResult) { showMsg('Calculate fare first', 'err'); return }
+    
     const user = JSON.parse(localStorage.getItem("auto-ride-user") || "{}")
+    
     const bookingData = {
       guestName: user.name || "Customer",
       guestEmail: user.email || "customer@gmail.com",
-      mobileNumber: user.mobileNumber || "9876543210",
+      mobileNumber: mobileNumber || user.mobileNumber || "9876543210", // OTP-யில் இருந்து பெறப்பட்ட எண் இங்கு இணையும்
       pickupLocation: pickupText,
       dropoffLocation: dropoffText,
       rideType: ride.name,
@@ -104,6 +110,7 @@ export default function BookingPage() {
       notes: "",
       status: "PENDING",
     }
+    
     try {
       const res = await fetch("/api/bookings", {
         method: "POST",
@@ -121,211 +128,259 @@ export default function BookingPage() {
     }
   }
 
-  const ride = RIDE_TYPES[selectedRide]
-
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(160deg, #08090d 0%, #0d1b2a 50%, #08090d 100%)',
-      padding: '2rem 1rem',
+      background: '#0b0f19',
+      backgroundImage: 'radial-gradient(circle at 10% 20%, rgba(15, 23, 42, 1) 0%, rgba(11, 15, 25, 1) 90%)',
+      padding: '2rem 1.5rem',
       fontFamily: "'Inter', system-ui, sans-serif",
+      color: '#f3f4f6',
+      boxSizing: 'border-box'
     }}>
-      {/* Ambient glow */}
-      <div style={{
-        position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0,
-        background: 'radial-gradient(ellipse 60% 40% at 50% 0%, rgba(212,175,55,0.08) 0%, transparent 70%)',
-      }} />
-
-      <div style={{ maxWidth: '520px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
-
-        {/* Header */}
-        <div style={{ marginBottom: '2rem' }}>
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-            background: 'rgba(212,175,55,0.1)', border: '1px solid rgba(212,175,55,0.25)',
-            borderRadius: '999px', padding: '0.2rem 0.75rem', marginBottom: '1rem',
-            fontSize: '0.7rem', fontWeight: 600, color: '#D4AF37', letterSpacing: '0.1em',
-            textTransform: 'uppercase',
-          }}>
-            <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#D4AF37', display: 'inline-block' }} />
-            New Ride
-          </div>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 900, color: '#f0f0f0', letterSpacing: '-0.03em', marginBottom: '0.35rem' }}>
-            Reserve your ride
-          </h1>
-          <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>
-            Enter route, verify OTP, get instant fare estimate
-          </p>
-        </div>
-
-        {/* OTP Section */}
+      {/* Structural layout handler */}
+      <div style={{ 
+        maxWidth: '1350px', 
+        margin: '0 auto', 
+        display: 'grid',
+        gridTemplateColumns: 'grid-template-columns: repeat(auto-fit, minmax(320px, 1fr))', // Mobile fallback
+        gap: '2.5rem',
+        alignItems: 'start',
+      }} className="desktop-layout-grid">
+        
+        {/* LEFT COLUMN: Map Dynamic Interaction Graphic Panel */}
         <div style={{
-          background: 'rgba(255,255,255,0.03)',
-          border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: '16px', padding: '1.25rem', marginBottom: '1rem',
+          position: 'sticky',
+          top: '2rem',
+          background: 'rgba(15, 23, 42, 0.4)',
+          border: '1px solid rgba(255, 255, 255, 0.05)',
+          borderRadius: '24px',
+          height: 'calc(100vh - 4rem)',
+          minHeight: '450px',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
         }}>
-          <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#4ECDC4', marginBottom: '0.75rem' }}>
-            📱 Verify Mobile
-          </p>
-          <OtpSection onVerified={() => setOtpVerified(true)} />
-          {otpVerified && (
+          {/* Mock Interactive Map Backdrop */}
+          <div style={{ 
+            flex: 1, 
+            background: '#0f172a',
+            backgroundImage: 'radial-gradient(rgba(255,255,255,0.04) 1px, transparent 0)',
+            backgroundSize: '24px 24px',
+            position: 'relative',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            {/* Ambient decorative center trace glow */}
             <div style={{
-              marginTop: '0.6rem', display: 'flex', alignItems: 'center', gap: '0.4rem',
-              fontSize: '0.8rem', color: '#34d399',
-              background: 'rgba(52,211,153,0.1)', borderRadius: '8px', padding: '0.4rem 0.75rem',
-            }}>
-              <span>✓</span> Mobile verified
+              position: 'absolute',
+              width: '250px',
+              height: '250px',
+              borderRadius: '50%',
+              background: `rgba(${ride.color}, 0.05)`,
+              filter: 'blur(40px)',
+              transition: 'background 0.5s ease'
+            }} />
+            
+            <div style={{ textAlign: 'center', zIndex: 1, padding: '2rem' }}>
+              <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>🗺️</div>
+              <div style={{ fontWeight: 600, color: '#ffffff', fontSize: '1rem' }}>Live Route Geolocation Map</div>
+              <p style={{ fontSize: '0.8rem', color: '#6b7280', maxWidth: '280px', margin: '0.4rem auto 0' }}>
+                {pickupText && dropoffText ? 'Processing dynamic routing vectors...' : 'Awaiting entry of starting parameters and target destination...'}
+              </p>
             </div>
-          )}
-        </div>
 
-        {/* Route */}
-        <div style={{
-          background: 'rgba(255,255,255,0.03)',
-          border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: '16px', padding: '1.25rem', marginBottom: '1rem',
-        }}>
-          <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#4ECDC4', marginBottom: '1rem' }}>
-            📍 Route
-          </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <LocationInput
-              id="pickup"
-              placeholder="Pickup location"
-              value={pickupText}
-              onChange={(v: string) => { setPickupText(v); setPickupCoords(null) }}
-              onSelect={(loc: LocationResult) => { setPickupCoords({ lat: loc.lat, lon: loc.lon }); setPickupText(loc.label) }}
-              dotColor="#4ECDC4"
-              onGps={gpsPickup}
-              actionLabel="📡 GPS"
-            />
-            <div style={{ width: '1px', height: '12px', background: 'rgba(255,255,255,0.1)', marginLeft: '7px' }} />
-            <LocationInput
-              id="dropoff"
-              placeholder="Drop-off location"
-              value={dropoffText}
-              onChange={(v: string) => { setDropoffText(v); setDropoffCoords(null) }}
-              onSelect={(loc: LocationResult) => { setDropoffCoords({ lat: loc.lat, lon: loc.lon }); setDropoffText(loc.label) }}
-              dotColor="#f97316"
-              actionLabel="✕ Clear"
-              onAction={() => { setDropoffText(''); setDropoffCoords(null) }}
-            />
+            {/* Bottom Floating Card inside Map side */}
+            {routeResult && (
+              <div style={{
+                position: 'absolute', bottom: '1.5rem', left: '1.5rem', right: '1.5rem',
+                background: 'rgba(11, 15, 25, 0.9)', backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '1rem',
+                display: 'flex', justifyContent: 'space-around', alignItems: 'center'
+              }}>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '0.75rem', color: '#6b7280', textTransform: 'uppercase' }}>Est. Distance</div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#ffffff' }}>{routeResult.distKm} km</div>
+                </div>
+                <div style={{ width: '1px', height: '30px', background: 'rgba(255,255,255,0.1)' }} />
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '0.75rem', color: '#6b7280', textTransform: 'uppercase' }}>Est. Duration</div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#ffffff' }}>{routeResult.durationMin} mins</div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Ride Type */}
-        <div style={{
-          background: 'rgba(255,255,255,0.03)',
-          border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: '16px', padding: '1.25rem', marginBottom: '1rem',
-        }}>
-          <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#4ECDC4', marginBottom: '1rem' }}>
-            🚗 Ride type
-          </p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.6rem' }}>
-            {RIDE_TYPES.map((rt, i) => (
-              <button
-                key={rt.name}
-                type="button"
-                onClick={() => { setSelectedRide(i); setRouteResult(null) }}
-                style={{
-                  borderRadius: '12px', padding: '0.85rem 0.5rem', textAlign: 'center',
-                  background: i === selectedRide ? `rgba(${rt.color === '#facc15' ? '250,204,21' : rt.color === '#38bdf8' ? '56,189,248' : rt.color === '#a78bfa' ? '167,139,250' : rt.color === '#f472b6' ? '244,114,182' : rt.color === '#34d399' ? '52,211,153' : '251,146,60'},0.1)` : 'rgba(255,255,255,0.03)',
-                  border: i === selectedRide ? `1px solid ${rt.color}` : '1px solid rgba(255,255,255,0.08)',
-                  cursor: 'pointer', transition: 'all 0.2s',
-                }}
-              >
-                <div style={{ fontSize: '1.5rem', marginBottom: '0.3rem' }}>{rt.icon}</div>
-                <div style={{ fontSize: '0.8rem', fontWeight: 700, color: i === selectedRide ? rt.color : '#9ca3af' }}>{rt.name}</div>
-                <div style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.1rem' }}>₹{rt.rate}/km</div>
-                <div style={{ fontSize: '0.65rem', color: i === selectedRide ? rt.color : '#4b5563', marginTop: '0.15rem' }}>{rt.desc}</div>
-              </button>
-            ))}
+        {/* RIGHT COLUMN: Booking Form Flow */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          
+          {/* Header context */}
+          <div>
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+              background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRadius: '999px', padding: '0.35rem 1rem', marginBottom: '0.75rem',
+              fontSize: '0.75rem', fontWeight: 600, color: '#9ca3af', letterSpacing: '0.05em',
+            }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: `rgb(${ride.color})`, display: 'inline-block' }} />
+              Premium Dispatch Engine
+            </div>
+            <h1 style={{ fontSize: '2rem', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.03em', marginBottom: '0.25rem' }}>
+              Reserve Your Ride
+            </h1>
+            <p style={{ fontSize: '0.9rem', color: '#6b7280' }}>
+              Complete the credentials, choose an option, and calculate metrics.
+            </p>
           </div>
 
-          {/* Selected ride summary */}
+          {/* Verification Card */}
           <div style={{
-            marginTop: '1rem', padding: '0.75rem 1rem',
-            background: 'rgba(255,255,255,0.04)', borderRadius: '10px',
-            border: `1px solid ${ride.color}33`,
-            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            background: 'rgba(17, 24, 39, 0.6)', backdropFilter: 'blur(12px)',
+            border: otpVerified ? '1px solid rgba(52, 211, 153, 0.25)' : '1px solid rgba(255, 255, 255, 0.05)',
+            borderRadius: '20px', padding: '1.25rem', boxSizing: 'border-box'
           }}>
-            <span style={{ fontSize: '0.85rem', color: '#9ca3af' }}>{ride.icon} {ride.name} selected</span>
-            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: ride.color }}>₹{ride.rate}/km</span>
+            <p style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: '#4ECDC4', marginBottom: '0.75rem' }}>
+              📱 Verification Status
+            </p>
+            <OtpSection onVerified={(phone: string) => { setOtpVerified(true); setMobileNumber(phone); }} />
+            {otpVerified && (
+              <div style={{
+                marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem',
+                fontSize: '0.8rem', color: '#34d399', background: 'rgba(52,211,153,0.06)', borderRadius: '10px', padding: '0.5rem 0.75rem',
+              }}>
+                ✓ Mobile token successfully authenticated: {mobileNumber}
+              </div>
+            )}
           </div>
-        </div>
 
-        {/* Schedule & Extras */}
-        <div style={{
-          background: 'rgba(255,255,255,0.03)',
-          border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: '16px', padding: '1.25rem', marginBottom: '1rem',
-        }}>
-          <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#4ECDC4', marginBottom: '1rem' }}>
-            📅 Schedule & extras
-          </p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+          {/* Route Config Card */}
+          <div style={{
+            background: 'rgba(17, 24, 39, 0.6)', backdropFilter: 'blur(12px)',
+            border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: '20px', padding: '1.25rem', boxSizing: 'border-box'
+          }}>
+            <p style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: '#4ECDC4', marginBottom: '1rem' }}>
+              📍 Journey Parameters
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <LocationInput
+                id="pickup"
+                placeholder="Pickup terminal location"
+                value={pickupText}
+                onChange={(v: string) => { setPickupText(v); setPickupCoords(null) }}
+                onSelect={(loc: LocationResult) => { setPickupCoords({ lat: loc.lat, lon: loc.lon }); setPickupText(loc.label) }}
+                dotColor="#38bdf8"
+                onGps={gpsPickup}
+                actionLabel="📡 GPS"
+              />
+              <div style={{ width: '2px', height: '16px', background: 'linear-gradient(#38bdf8, #f97316)', marginLeft: '16px', opacity: 0.3 }} />
+              <LocationInput
+                id="dropoff"
+                placeholder="Drop-off point"
+                value={dropoffText}
+                onChange={(v: string) => { setDropoffText(v); setDropoffCoords(null) }}
+                onSelect={(loc: LocationResult) => { setDropoffCoords({ lat: loc.lat, lon: loc.lon }); setDropoffText(loc.label) }}
+                dotColor="#f97316"
+                actionLabel="✕ Clear"
+                onAction={() => { setDropoffText(''); setDropoffCoords(null) }}
+              />
+            </div>
+          </div>
+
+          {/* Fleets Selection Grid */}
+          <div style={{
+            background: 'rgba(17, 24, 39, 0.6)', backdropFilter: 'blur(12px)',
+            border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: '20px', padding: '1.25rem', boxSizing: 'border-box'
+          }}>
+            <p style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: '#4ECDC4', marginBottom: '1rem' }}>
+              🚕 Fleet Tier Options
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem' }}>
+              {RIDE_TYPES.map((rt, i) => {
+                const isSelected = i === selectedRide;
+                return (
+                  <button
+                    key={rt.name}
+                    type="button"
+                    onClick={() => { setSelectedRide(i); setRouteResult(null) }}
+                    style={{
+                      borderRadius: '16px', padding: '1rem', textAlign: 'left',
+                      background: isSelected ? `rgba(${rt.color}, 0.08)` : 'rgba(255, 255, 255, 0.02)',
+                      border: isSelected ? `2px solid rgb(${rt.color})` : '1px solid rgba(255, 255, 255, 0.05)',
+                      cursor: 'pointer', transition: 'all 0.2s ease',
+                      outline: 'none', display: 'flex', flexDirection: 'column', gap: '0.2rem'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                      <span style={{ fontSize: '1.4rem' }}>{rt.icon}</span>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 700, color: isSelected ? `rgb(${rt.color})` : '#9ca3af' }}>₹{rt.rate}/km</span>
+                    </div>
+                    <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#ffffff', marginTop: '0.25rem' }}>{rt.name}</div>
+                    <div style={{ fontSize: '0.7rem', color: '#6b7280' }}>{rt.desc}</div>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Extras / Logistics Option Card */}
+          <div style={{
+            background: 'rgba(17, 24, 39, 0.6)', backdropFilter: 'blur(12px)',
+            border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: '20px', padding: '1.25rem', boxSizing: 'border-box'
+          }}>
+            <p style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: '#4ECDC4', marginBottom: '1rem' }}>
+              📅 Logistical Schedule
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+              <div>
+                <label style={{ fontSize: '0.72rem', color: '#9ca3af', display: 'block', marginBottom: '0.4rem' }}>Date & Time</label>
+                <input type="datetime-local" style={{
+                  width: '100%', background: 'rgba(255, 255, 255, 0.04)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px',
+                  padding: '0.6rem', color: '#ffffff', fontSize: '0.8rem', outline: 'none', boxSizing: 'border-box'
+                }} />
+              </div>
+              <div>
+                <label style={{ fontSize: '0.72rem', color: '#9ca3af', display: 'block', marginBottom: '0.4rem' }}>Payment Strategy</label>
+                <select style={{
+                  width: '100%', background: 'rgba(255, 255, 255, 0.04)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px',
+                  padding: '0.6rem', color: '#ffffff', fontSize: '0.8rem', outline: 'none', boxSizing: 'border-box', height: '37px'
+                }}>
+                  <option style={{ background: '#0b0f19' }}>Online Wallet</option>
+                  <option style={{ background: '#0b0f19' }}>Cash On Delivery</option>
+                  <option style={{ background: '#0b0f19' }}>UPI Handle</option>
+                </select>
+              </div>
+            </div>
             <div>
-              <label style={{ fontSize: '0.72rem', color: '#6b7280', display: 'block', marginBottom: '0.4rem' }}>Travel date & time</label>
-              <input type="datetime-local" style={{
-                width: '100%', background: 'rgba(255,255,255,0.05)',
-                border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px',
-                padding: '0.5rem 0.6rem', color: '#f0f0f0', fontSize: '0.8rem',
-                outline: 'none',
+              <label style={{ fontSize: '0.72rem', color: '#9ca3af', display: 'block', marginBottom: '0.4rem' }}>Special Driver Instructions</label>
+              <textarea placeholder="Add details like luggage count, landmarks, or accessibility options..." rows={2} style={{
+                width: '100%', background: 'rgba(255, 255, 255, 0.04)',
+                border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px',
+                padding: '0.6rem', color: '#ffffff', fontSize: '0.8rem', outline: 'none', resize: 'none', fontFamily: 'inherit', boxSizing: 'border-box'
               }} />
             </div>
-            <div>
-              <label style={{ fontSize: '0.72rem', color: '#6b7280', display: 'block', marginBottom: '0.4rem' }}>Payment method</label>
-              <select style={{
-                width: '100%', background: 'rgba(255,255,255,0.05)',
-                border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px',
-                padding: '0.5rem 0.6rem', color: '#f0f0f0', fontSize: '0.8rem',
-                outline: 'none',
-              }}>
-                <option style={{ background: '#0d1b2a' }}>Online payment</option>
-                <option style={{ background: '#0d1b2a' }}>Cash</option>
-                <option style={{ background: '#0d1b2a' }}>UPI</option>
-                <option style={{ background: '#0d1b2a' }}>Card</option>
-              </select>
-            </div>
           </div>
-          <div>
-            <label style={{ fontSize: '0.72rem', color: '#6b7280', display: 'block', marginBottom: '0.4rem' }}>Extra notes</label>
-            <textarea
-              placeholder="Luggage, special needs, etc."
-              rows={2}
-              style={{
-                width: '100%', background: 'rgba(255,255,255,0.05)',
-                border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px',
-                padding: '0.6rem 0.75rem', color: '#f0f0f0', fontSize: '0.8rem',
-                outline: 'none', resize: 'none',
-                fontFamily: 'inherit',
-              }}
-            />
-          </div>
-        </div>
 
-        {/* Estimate Button */}
-        <button
-          type="button"
-          onClick={calcFare}
-          disabled={calcLoading}
-          style={{
-            width: '100%', padding: '0.9rem',
-            borderRadius: '12px', fontSize: '0.9rem', fontWeight: 700,
-            border: '1px solid rgba(78,205,196,0.4)',
-            color: calcLoading ? '#4b5563' : '#4ECDC4',
-            background: calcLoading ? 'rgba(255,255,255,0.03)' : 'rgba(78,205,196,0.08)',
-            cursor: calcLoading ? 'not-allowed' : 'pointer',
-            marginBottom: '1rem', transition: 'all 0.2s', letterSpacing: '-0.01em',
-          }}
-        >
-          {calcLoading ? '⏳ Fetching real route...' : '🗺️ Estimate distance & fare'}
-        </button>
+          {/* Action Trigger Buttons */}
+          <button
+            type="button"
+            onClick={calcFare}
+            disabled={calcLoading}
+            style={{
+              width: '100%', padding: '1rem', borderRadius: '16px', fontSize: '0.9rem', fontWeight: 700,
+              border: '1px solid rgba(255,255,255,0.08)', color: calcLoading ? '#4b5563' : '#ffffff',
+              background: calcLoading ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.05)',
+              cursor: calcLoading ? 'not-allowed' : 'pointer', transition: 'all 0.2s',
+            }}
+          >
+            {calcLoading ? 'Syncing navigation array matrix...' : '🗺️ Estimate Distance & Fares'}
+          </button>
 
-        {/* Fare Result */}
-        {routeResult && (
-          <div style={{ marginBottom: '1rem' }}>
+          {routeResult && (
             <FareResult
               pickup={pickupText}
               dropoff={dropoffText}
@@ -334,44 +389,41 @@ export default function BookingPage() {
               rate={ride.rate}
               rideName={ride.name}
             />
-          </div>
-        )}
+          )}
 
-        {/* Status Message */}
-        {statusMsg && (
-          <div style={{
-            fontSize: '0.85rem', textAlign: 'center',
-            padding: '0.85rem 1rem', borderRadius: '12px', marginBottom: '1rem',
-            background: statusMsg.type === 'ok' ? 'rgba(52,211,153,0.1)' : 'rgba(248,113,113,0.1)',
-            color: statusMsg.type === 'ok' ? '#34d399' : '#f87171',
-            border: `1px solid ${statusMsg.type === 'ok' ? 'rgba(52,211,153,0.25)' : 'rgba(248,113,113,0.25)'}`,
-          }}>
-            {statusMsg.text}
-          </div>
-        )}
+          {statusMsg && (
+            <div style={{
+              fontSize: '0.85rem', padding: '1rem', borderRadius: '14px',
+              background: statusMsg.type === 'ok' ? 'rgba(52,211,153,0.08)' : 'rgba(248,113,113,0.08)',
+              color: statusMsg.type === 'ok' ? '#34d399' : '#f87171',
+              border: `1px solid ${statusMsg.type === 'ok' ? 'rgba(52,211,153,0.2)' : 'rgba(248,113,113,0.2)'}`,
+            }}>
+              {statusMsg.text}
+            </div>
+          )}
 
-        {/* Submit Button */}
-        <button
-          type="button"
-          onClick={createBooking}
-          style={{
-            width: '100%', padding: '1rem', borderRadius: '14px',
-            fontSize: '1rem', fontWeight: 800, letterSpacing: '-0.02em',
-            background: 'linear-gradient(135deg, #D4AF37 0%, #facc15 100%)',
-            color: '#08090d', border: 'none', cursor: 'pointer',
-            boxShadow: '0 0 28px rgba(212,175,55,0.3)',
-            transition: 'all 0.2s',
-          }}
-          onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 0 40px rgba(212,175,55,0.5)')}
-          onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 0 28px rgba(212,175,55,0.3)')}
-        >
-          ✓ Create Booking
-        </button>
-
-        <p style={{ textAlign: 'center', fontSize: '0.72rem', color: '#4b5563', marginTop: '1rem' }}>
-          Fare is locked once booking is confirmed
-        </p>
+          <button
+            type="button"
+            onClick={createBooking}
+            style={{
+              width: '100%', padding: '1.1rem', borderRadius: '16px',
+              fontSize: '1rem', fontWeight: 800, background: '#ffffff', color: '#0b0f19',
+              border: 'none', cursor: 'pointer', boxShadow: '0 8px 24px rgba(255,255,255,0.1)',
+              transition: 'all 0.2s'
+            }}
+          >
+            ✓ Complete Reservation Request
+          </button>
+        </div>
       </div>
+
+      <style jsx global>{`
+        @media (min-width: 900px) {
+          .desktop-layout-grid {
+            grid-template-columns: 1.1fr 1fr !important;
+          }
+        }
+      `}</style>
     </div>
   )
 }

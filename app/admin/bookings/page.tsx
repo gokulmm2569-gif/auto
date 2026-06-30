@@ -37,185 +37,206 @@ export default function BookingsPage() {
       .catch(() => setLoading(false))
   }, [router])
 
+  // Calculated Stats Variables
+  const totalRevenue = bookings.reduce((sum, b) => sum + b.paymentAmount, 0)
+  const confirmedCount = bookings.filter(b => b.status.toUpperCase() === 'CONFIRMED').length
+  const pendingCount = bookings.filter(b => b.status.toUpperCase() === 'PENDING').length
+  const cancelledCount = bookings.filter(b => b.status.toUpperCase() === 'CANCELLED').length
+
   if (loading) return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0d1b2a] via-[#1b4965] to-[#0d1b2a] flex items-center justify-center">
-      <div className="text-center animate-pulse">
-        <div className="text-6xl mb-6 animate-spin">📋</div>
-        <p className="text-[#4ECDC4] text-lg font-semibold">Loading bookings...</p>
-        <div className="mt-4 w-48 h-1 bg-[#1e3a5f] rounded-full overflow-hidden mx-auto">
-          <div className="h-full bg-[#4ECDC4] animate-loading-bar"></div>
+    <div className="min-h-screen bg-[#040814] flex flex-col items-center justify-center relative overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(245,158,11,0.06),transparent_65%)]" />
+      <div className="relative flex flex-col items-center">
+        <div className="w-20 h-20 relative mb-6">
+          <div className="absolute inset-0 rounded-2xl border-2 border-amber-500/30 animate-ping duration-1000" />
+          <div className="absolute inset-0 rounded-2xl border-2 border-t-amber-500 border-r-transparent border-b-transparent border-l-transparent animate-spin" />
+          <div className="absolute inset-2 bg-slate-900 rounded-xl flex items-center justify-center border border-slate-800 shadow-xl">
+            <span className="text-amber-500 font-sans text-sm font-black tracking-wider">RIDE</span>
+          </div>
         </div>
+        <h2 className="text-white text-base font-bold tracking-wide animate-pulse">Loading Bookings List...</h2>
+        <p className="text-slate-400 text-xs mt-1">Retrieving system transactions</p>
       </div>
     </div>
   )
 
   return (
     <>
-      {/* Global Styles for Animations */}
       <style>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-20px); }
+        @keyframes ambient-glow {
+          0%, 100% { transform: translateY(0px) scale(1); opacity: 0.05; }
+          50% { transform: translateY(-20px) scale(1.05); opacity: 0.08; }
         }
-        @keyframes float-delayed {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-15px); }
+        @keyframes laser-slide {
+          from { transform: translateX(-100%); }
+          to { transform: translateX(100%); }
         }
-        @keyframes fade-in {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
+        .animate-ambient { animation: ambient-glow 8s ease-in-out infinite; }
+        .animate-ambient-delayed { animation: ambient-glow 6s ease-in-out infinite; animation-delay: 2s; }
+        .laser-glow:hover::after {
+          content: '';
+          position: absolute;
+          top: 0; left: 0;
+          width: 100%; height: 2px;
+          background: linear-gradient(to right, transparent, #f59e0b, transparent);
+          animation: laser-slide 1.5s ease-in-out infinite;
         }
-        @keyframes slide-down {
-          from { opacity: 0; transform: translateY(-20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes loading-bar {
-          from { width: 0%; }
-          to { width: 100%; }
-        }
-        .animate-float { animation: float 6s ease-in-out infinite; }
-        .animate-float-delayed { animation: float-delayed 5s ease-in-out infinite; }
-        .animate-fade-in { animation: fade-in 0.6s ease-out; }
-        .animate-slide-down { animation: slide-down 0.5s ease-out; }
-        .animate-loading-bar { animation: loading-bar 2s ease-out; }
       `}</style>
 
-      <div className="min-h-screen bg-gradient-to-br from-[#0d1b2a] via-[#16243d] to-[#0d1b2a]">
-        {/* Animated Background Particles */}
-        <div className="fixed inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 left-10 w-64 h-64 bg-[#4ECDC4] rounded-full opacity-5 blur-3xl animate-float"></div>
-          <div className="absolute top-40 right-20 w-80 h-80 bg-[#f97316] rounded-full opacity-5 blur-3xl animate-float-delayed"></div>
-          <div className="absolute bottom-20 left-1/3 w-96 h-96 bg-[#34d399] rounded-full opacity-5 blur-3xl animate-float"></div>
+      <div className="min-h-screen bg-[#040814] text-slate-100 font-sans selection:bg-amber-500/30 selection:text-amber-200 antialiased">
+        
+        {/* Dynamic Canvas Orbs */}
+        <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+          <div className="absolute top-[-10%] left-[5%] w-[700px] h-[700px] bg-gradient-to-br from-amber-500/10 to-transparent rounded-full blur-[130px] animate-ambient" />
+          <div className="absolute bottom-[-5%] right-[5%] w-[600px] h-[600px] bg-gradient-to-tr from-emerald-500/8 to-transparent rounded-full blur-[130px] animate-ambient-delayed" />
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_at_center,transparent_10%,black_80%)]" />
         </div>
 
-        {/* Header with Glow Effect */}
-        <div className="relative border-b border-[#1e3a5f] bg-gradient-to-r from-[#082020] via-[#0a3a4a] to-[#082020] px-6 py-6">
-          <div className="max-w-7xl mx-auto flex justify-between items-center">
-            <div className="animate-slide-down">
-              <div className="flex items-center gap-3">
-                <div className="text-4xl animate-bounce">📋</div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-[#f97316] to-[#4ECDC4] bg-clip-text text-transparent">
-                  All Bookings
-                </h1>
+        <div className="relative z-10 flex flex-col min-h-screen">
+          
+          {/* Main Top Header Block */}
+          <header className="border-b border-slate-800/60 bg-slate-950/40 backdrop-blur-2xl px-6 lg:px-12 py-5 sticky top-0 z-50 shadow-md">
+            <div className="max-w-7xl mx-auto flex flex-col sm:flex-row gap-5 justify-between sm:items-center">
+              <div>
+                <div className="flex items-center gap-3">
+                  <h1 className="text-2xl font-extrabold tracking-tight text-white">All Bookings</h1>
+                  <span className="text-[11px] font-bold bg-amber-500/10 text-amber-400 px-2.5 py-0.5 rounded-full border border-amber-500/30 flex items-center gap-1.5 shadow-sm">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" /> Live Ledger
+                  </span>
+                </div>
+                <p className="text-sm text-slate-400 mt-1">Comprehensive system transaction feed</p>
               </div>
-              <p className="text-sm text-[#4ECDC4] mt-2 font-medium">
-                Managing {bookings.length} bookings ✨
-              </p>
-            </div>
-            <Link
-              href="/admin/dashboard"
-              className="group rounded-xl bg-gradient-to-r from-[#1e3a5f] to-[#0a4a4a] px-6 py-3 text-sm font-semibold text-[#4ECDC4] hover:from-[#0a4a4a] hover:to-[#0d6a6a] transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-[#4ECDC4]/50 animate-slide-down"
-            >
-              <span className="flex items-center gap-2">
-                <span className="group-hover:-translate-x-1 transition-transform">←</span>
+
+              <Link
+                href="/admin/dashboard"
+                className="group rounded-xl bg-slate-900/80 hover:bg-slate-800/80 border border-slate-800 px-5 py-2.5 text-sm font-bold text-slate-200 transition-all duration-300 flex items-center gap-2.5 shadow-md"
+              >
+                <span className="group-hover:-translate-x-1 transition-transform duration-300">←</span>
                 Back to Dashboard
-              </span>
-            </Link>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div className="max-w-7xl mx-auto px-6 py-8 relative">
-          {/* Bookings Table with Enhanced Design */}
-          <div className="rounded-2xl border border-[#1e3a5f] bg-gradient-to-br from-[#082020] to-[#0a3a4a] overflow-hidden shadow-2xl animate-fade-in">
-            {/* Table Header */}
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-[#1e3a5f] bg-gradient-to-r from-[#0a3a3a] to-[#0a4a5a]">
-                    <th className="px-6 py-4 text-left text-[#4ECDC4] font-semibold">Booking ID</th>
-                    <th className="px-6 py-4 text-left text-[#4ECDC4] font-semibold">Customer</th>
-                    <th className="px-6 py-4 text-left text-[#4ECDC4] font-semibold">Route</th>
-                    <th className="px-6 py-4 text-left text-[#4ECDC4] font-semibold">Amount</th>
-                    <th className="px-6 py-4 text-left text-[#4ECDC4] font-semibold">Payment</th>
-                    <th className="px-6 py-4 text-left text-[#4ECDC4] font-semibold">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {bookings.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center text-[#8a9bb5]">
-                        <div className="flex items-center justify-center gap-4">
-                          <div className="text-6xl">📭</div>
-                          <div>
-                            <p className="text-lg font-semibold mb-2">No bookings found</p>
-                            <p className="text-sm">Bookings will appear here when customers book rides</p>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  ) : (
-                    bookings.map((row: Booking, index: number) => (
-                      <tr
-                        key={row.id}
-                        className={`border-b border-[#1e3a5f] hover:bg-gradient-to-r from-[#0a4a4a] to-[#0a5a5a] transition-all duration-200 transform hover:scale-[1.01] ${
-                          index % 2 === 0 ? 'bg-[#082020]/50' : 'bg-[#0a3a4a]/30'
-                        }`}
-                      >
-                        <td className="px-6 py-4 text-white font-mono font-semibold text-xs">{row.id}</td>
-                        <td className="px-6 py-4 text-[#8a9bb5]">
-                          <div className="flex items-center gap-2">
-                            <div className="text-[#4ECDC4]">👤</div>
-                            {row.guestName}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-[#8a9bb5]">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[#4ECDC4] font-medium">{row.pickupLocation}</span>
-                            <span className="text-[#1e3a5f]">→</span>
-                            <span className="text-[#34d399] font-medium">{row.dropoffLocation}</span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-[#34d399] font-bold text-lg">₹{row.paymentAmount}</td>
-                        <td className="px-6 py-4">
-                          <span className="flex items-center gap-2 text-[#8a9bb5]">
-                            {row.paymentMethod === 'online' ? '💳' : row.paymentMethod === 'offline' ? '💵' : '📝'}
-                            {row.paymentMethod || '—'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={`inline-flex items-center gap-1 rounded-full px-4 py-2 text-xs font-semibold transition-all ${
-                            row.status === 'CONFIRMED'
-                              ? 'bg-gradient-to-r from-[#064e3b] to-[#065f46] text-[#34d399] shadow-lg shadow-[#34d399]/20'
-                              : row.status === 'PENDING'
-                                ? 'bg-gradient-to-r from-[#451a03] to-[#5c2403] text-[#f97316] shadow-lg shadow-[#f97316]/20'
-                                : 'bg-gradient-to-r from-[#1e3a5f] to-[#0a4a4a] text-[#4ECDC4] shadow-lg shadow-[#4ECDC4]/20'
-                          }`}>
-                            {row.status === 'CONFIRMED' && '✅'}
-                            {row.status === 'PENDING' && '⏳'}
-                            {row.status === 'CANCELLED' && '❌'}
-                            {row.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+              </Link>
             </div>
+          </header>
 
-            {/* Table Footer with Stats */}
-            {bookings.length > 0 && (
-              <div className="border-t border-[#1e3a5f] bg-gradient-to-r from-[#0a3a3a] to-[#0a4a4a] px-6 py-4">
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-6">
-                    <span className="text-[#8a9bb5]">
-                      Total: <span className="text-[#4ECDC4] font-bold">{bookings.length}</span>
-                    </span>
-                    <span className="text-[#8a9bb5]">
-                      Confirmed: <span className="text-[#34d399] font-bold">{bookings.filter(b => b.status === 'CONFIRMED').length}</span>
-                    </span>
-                    <span className="text-[#8a9bb5]">
-                      Pending: <span className="text-[#f97316] font-bold">{bookings.filter(b => b.status === 'PENDING').length}</span>
-                    </span>
+          {/* Split Workspace Layout */}
+          <main className="max-w-7xl w-full mx-auto px-6 lg:px-12 py-10 flex-1">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+              
+              {/* STICKY SIDE PANEL: Quick Metrics Summary Desk */}
+              <div className="lg:sticky lg:top-28 space-y-6">
+                <div className="rounded-2xl border border-slate-800/80 bg-slate-950/60 backdrop-blur-xl p-6 shadow-xl relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-2xl pointer-events-none" />
+                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Financial Ledger Summary</h3>
+                  
+                  <div className="mb-6">
+                    <span className="text-xs text-slate-400 block mb-1">Total Gross Revenue</span>
+                    <div className="text-4xl lg:text-5xl font-black text-white tracking-tight">
+                      ₹{totalRevenue.toLocaleString('en-IN')}
+                    </div>
                   </div>
-                  <div className="text-[#8a9bb5]">
-                    Total Revenue: <span className="text-[#34d399] font-bold">₹{bookings.reduce((sum, b) => sum + b.paymentAmount, 0)}</span>
+
+                  <div className="h-px bg-slate-800/60 my-5" />
+
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center bg-slate-900/40 border border-slate-800/50 p-3 rounded-xl">
+                      <span className="text-sm text-slate-400 flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-slate-400" /> Total Bookings
+                      </span>
+                      <span className="text-sm font-bold text-white">{bookings.length}</span>
+                    </div>
+
+                    <div className="flex justify-between items-center bg-emerald-500/5 border border-emerald-500/10 p-3 rounded-xl">
+                      <span className="text-sm text-emerald-400 flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Confirmed
+                      </span>
+                      <span className="text-sm font-bold text-emerald-400">{confirmedCount}</span>
+                    </div>
+
+                    <div className="flex justify-between items-center bg-amber-500/5 border border-amber-500/10 p-3 rounded-xl">
+                      <span className="text-sm text-amber-400 flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" /> Pending Reviews
+                      </span>
+                      <span className="text-sm font-bold text-amber-400">{pendingCount}</span>
+                    </div>
                   </div>
                 </div>
               </div>
-            )}
-          </div>
+
+              {/* DYNAMIC LIST PANEL: Grid Cards Feed Split */}
+              <div className="lg:col-span-2 space-y-4">
+                {bookings.length === 0 ? (
+                  <div className="rounded-2xl border border-slate-800/80 bg-slate-950/40 p-20 text-center text-slate-500 backdrop-blur-xl">
+                    <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-slate-900 border border-slate-800 mb-4 text-slate-400 text-xl font-bold">
+                      ✕
+                    </div>
+                    <span className="text-base tracking-wide block text-slate-300 font-bold">No active requests logged</span>
+                    <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">Incoming reservations submitted by users will display here instantly in real-time order.</p>
+                  </div>
+                ) : (
+                  bookings.map((row: Booking) => (
+                    <div
+                      key={row.id}
+                      className="group relative rounded-2xl border border-slate-800/80 bg-slate-950/30 hover:bg-slate-900/30 backdrop-blur-xl p-6 transition-all duration-300 shadow-lg overflow-hidden laser-glow"
+                    >
+                      {/* Top Header Row Inside Card */}
+                      <div className="flex flex-wrap items-start justify-between gap-4 mb-5">
+                        <div>
+                          <span className="text-[10px] font-mono font-bold tracking-widest text-slate-500 uppercase block mb-1">
+                            ID: #{row.id.toUpperCase()}
+                          </span>
+                          <h4 className="text-lg font-bold text-white tracking-tight">
+                            {row.guestName}
+                          </h4>
+                        </div>
+
+                        {/* Status Stamp Badge */}
+                        <span className={`inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider border shadow-sm ${
+                          row.status.toUpperCase() === 'CONFIRMED'
+                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.04)]'
+                            : row.status.toUpperCase() === 'PENDING'
+                              ? 'bg-amber-500/10 text-amber-400 border-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.04)]'
+                              : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                        }`}>
+                          <span className={`w-1.5 h-1.5 rounded-full mr-2 ${
+                            row.status.toUpperCase() === 'CONFIRMED' ? 'bg-emerald-400 animate-pulse' : row.status.toUpperCase() === 'PENDING' ? 'bg-amber-400 animate-pulse' : 'bg-rose-400'
+                          }`} />
+                          {row.status.toLowerCase()}
+                        </span>
+                      </div>
+
+                      {/* Route Map Blocks Graph */}
+                      <div className="bg-slate-950/60 border border-slate-900 rounded-xl p-4 mb-5 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-inner">
+                        <div className="flex-1">
+                          <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 block mb-1">Pickup</span>
+                          <div className="text-sm font-semibold text-slate-200">{row.pickupLocation}</div>
+                        </div>
+                        <div className="hidden md:block text-slate-700 font-black text-lg select-none">→</div>
+                        <div className="flex-1">
+                          <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 block mb-1">Dropoff</span>
+                          <div className="text-sm font-semibold text-slate-400">{row.dropoffLocation}</div>
+                        </div>
+                      </div>
+
+                      {/* Footer Metadata & Pricing */}
+                      <div className="flex items-center justify-between pt-2 border-t border-slate-900">
+                        <div className="flex items-center gap-3 text-xs text-slate-400 bg-slate-900/40 px-3 py-1.5 rounded-lg border border-slate-800/60">
+                          <span>{row.paymentMethod === 'online' ? '💳' : row.paymentMethod === 'offline' ? '💵' : '📝'}</span>
+                          <span className="capitalize font-medium">{row.paymentMethod || 'Unassigned'}</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[10px] text-slate-500 block font-bold uppercase tracking-wider">Fare Amount</span>
+                          <span className="text-xl font-black text-emerald-400 tracking-tight">
+                            ₹{row.paymentAmount.toLocaleString('en-IN')}
+                          </span>
+                        </div>
+                      </div>
+
+                    </div>
+                  ))
+                )}
+              </div>
+
+            </div>
+          </main>
         </div>
       </div>
     </>

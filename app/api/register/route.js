@@ -1,15 +1,41 @@
-import { db } from '../../../lib/db'
+import { NextRequest, NextResponse } from 'next/server'
+import { createUserWithEmailAndPassword } from 'firebase/auth'
+import { doc, setDoc } from 'firebase/firestore'
+import { auth, db } from '@/lib/firebase'
 
-export async function POST(request) {
+export async function POST(req: NextRequest) {
   try {
-    const payload = await request.json()
-    const user = db.createUser(payload)
+    const { name, email, password } = await req.json()
 
-    return Response.json({ ok: true, user }, { status: 201 })
+    // 🔥 Firebase Auth-ல் user create (Backend-ல்)
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      password
+    )
+
+    const user = userCredential.user
+
+    // 🔥 Firestore-ல் user டேட்டா ஸ்டோர்
+    await setDoc(doc(db, 'users', user.uid), {
+      uid: user.uid,
+      name,
+      email: user.email,
+      createdAt: new Date(),
+    })
+
+    return NextResponse.json({
+      user: {
+        uid: user.uid,
+        email: user.email,
+        name,
+      },
+    })
   } catch (error) {
-    return Response.json(
-      { ok: false, error: error.message ?? 'Unable to register user.' },
-      { status: error.status ?? 400 }
+    const errorMessage = error instanceof Error ? error.message : 'Registration failed'
+    return NextResponse.json(
+      { error: errorMessage },
+      { status: 400 }
     )
   }
 }

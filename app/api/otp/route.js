@@ -11,6 +11,28 @@ const hasTwilioConfig =
   Boolean(process.env.TWILIO_ACCOUNT_SID) &&
   Boolean(process.env.TWILIO_AUTH_TOKEN) &&
   Boolean(process.env.TWILIO_FROM_NUMBER)
+  async function sendSmsViaFast2SMS({ to, body }) {
+  const response = await fetch("https://www.fast2sms.com/dev/bulkV2", {
+    method: "POST",
+    headers: {
+      authorization: process.env.FAST2SMS_API_KEY,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      route: "q",
+      message: body,
+      language: "english",
+      flash: 0,
+      numbers: to,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error("SMS sending failed");
+  }
+
+  return await response.json();
+}
 
 async function sendSmsViaTwilio({ to, body }) {
   if (!hasTwilioConfig) {
@@ -67,16 +89,15 @@ export async function POST(request) {
 
       const smsMessage = `Your Auto Ride OTP is ${code}. It expires in 5 minutes.`
 
-      if (hasTwilioConfig) {
-        await sendSmsViaTwilio({
-          to: mobileNumber,
-          body: smsMessage,
-        })
+      await sendSmsViaFast2SMS({
+  to: mobileNumber,
+  body: smsMessage,
+})
 
-        return Response.json({
-          ok: true,
-          message: 'OTP sent via SMS.',
-        })
+return Response.json({
+  ok: true,
+  message: "OTP sent successfully.",
+})
       }
 
       return Response.json({
