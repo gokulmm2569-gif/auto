@@ -10,8 +10,9 @@ const createOtp = () => String(Math.floor(100000 + Math.random() * 900000))
 const hasTwilioConfig =
   Boolean(process.env.TWILIO_ACCOUNT_SID) &&
   Boolean(process.env.TWILIO_AUTH_TOKEN) &&
-  Boolean(process.env.TWILIO_FROM_NUMBER)
-  async function sendSmsViaFast2SMS({ to, body }) {
+  Boolean(process.env.TWILIO_FROM_NUMBER);
+
+async function sendSmsViaFast2SMS({ to, body }) {
   const response = await fetch("https://www.fast2sms.com/dev/bulkV2", {
     method: "POST",
     headers: {
@@ -77,36 +78,32 @@ export async function POST(request) {
     }
 
     if (action === 'send') {
-      if (!mobileNumber) {
-        return Response.json({ ok: false, error: 'Mobile number is required.' }, { status: 400 })
-      }
+  if (!mobileNumber) {
+    return Response.json(
+      { ok: false, error: 'Mobile number is required.' },
+      { status: 400 }
+    )
+  }
 
-      const code = createOtp()
-      otpStore.set(mobileNumber, {
-        code,
-        expiresAt: Date.now() + OTP_TTL_MS,
-      })
+  const code = createOtp()
 
-      const smsMessage = `Your Auto Ride OTP is ${code}. It expires in 5 minutes.`
+  otpStore.set(mobileNumber, {
+    code,
+    expiresAt: Date.now() + OTP_TTL_MS,
+  })
 
-      await sendSmsViaFast2SMS({
-  to: mobileNumber,
-  body: smsMessage,
-})
+  const smsMessage = `Your Auto Ride OTP is ${code}. It expires in 5 minutes.`
 
-return Response.json({
-  ok: true,
-  message: "OTP sent successfully.",
-})
-      }
+  await sendSmsViaFast2SMS({
+    to: mobileNumber,
+    body: smsMessage,
+  })
 
-      return Response.json({
-        ok: true,
-        message: 'Demo OTP generated locally.',
-        demoCode: code,
-      })
-    }
-
+  return Response.json({
+    ok: true,
+    message: "OTP sent successfully.",
+  })
+}
     if (action === 'verify') {
       const code = String(payload?.code ?? '').trim()
 
