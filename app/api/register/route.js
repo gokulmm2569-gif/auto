@@ -3,7 +3,7 @@ import { createUserWithEmailAndPassword } from 'firebase/auth'
 import { doc, setDoc } from 'firebase/firestore'
 import { auth, db } from '@/lib/firebase'
 
-export async function POST(req: NextRequest) {
+export async function POST(req) {
   try {
     const { name, email, password } = await req.json()
 
