@@ -117,17 +117,16 @@ export default function BookingPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(bookingData),
       })
-      if (!res.ok) throw new Error('Booking failed')
       const data = await res.json()
+      if (!res.ok || !data.ok) throw new Error(data.error || 'Booking failed')
       showMsg(`✓ Booking confirmed! Reference: ${data.booking.id}`, 'ok')
       router.push("/")
       window.dispatchEvent(new Event("booking-created"))
       router.refresh()
-    } catch {
-      showMsg('Booking failed', 'err')
+    } catch (err: any) {
+      showMsg(err.message || 'Booking failed', 'err')
     }
   }
-
   return (
     <div style={{
       minHeight: '100vh',

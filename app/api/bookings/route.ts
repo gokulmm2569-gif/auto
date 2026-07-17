@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     bookings,
     stats,
   })
-}
+}                                               
 
 export async function POST(request: NextRequest) {
   try {
